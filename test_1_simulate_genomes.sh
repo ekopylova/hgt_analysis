@@ -27,34 +27,34 @@ i=0
 echo "Begin simulation .."
 for orth_rep in "${orth_rep_a[@]}"
 do
-	echo -e "\torth_rep: ${orth_rep}"
-	for gc_cont_am in "${gc_cont_am_a[@]}"
-	do
-		echo -e "\tgc_content: ${gc_cont_am}"
-		echo -e "\toutput directory: ${working_dir}/params_$i"
-		if [ ! -d "${working_dir}/params_$i" ]; then
-			mkdir ${working_dir}/"params_$i"
-		fi
-		python $scripts_dir/create_alf_params.py ${root_genome_fp} \
-	                                         	 ${custom_tree_fp} \
-	                                         	 ${working_dir}/"params_$i" \
-	                                         	 ${alf_params} \
-	                                         	 ${lgt_rate} \
-	                                         	 ${orth_rep} \
-	                                         	 ${gc_cont_am}
-		# launch ALF
-		echo -e "\tRunning ALF .."
-		(cd ${working_dir}/"params_$i"; alfsim "./alf_params.txt" 1>$stdout 2>$stderr)
+    echo -e "\torth_rep: ${orth_rep}"
+    for gc_cont_am in "${gc_cont_am_a[@]}"
+    do
+        echo -e "\tgc_content: ${gc_cont_am}"
+        echo -e "\toutput directory: ${working_dir}/params_$i"
+        if [ ! -d "${working_dir}/params_$i" ]; then
+            mkdir ${working_dir}/"params_$i"
+        fi
+        python $scripts_dir/create_alf_params.py ${root_genome_fp} \
+                                                 ${custom_tree_fp} \
+                                                 ${working_dir}/"params_$i" \
+                                                 ${alf_params} \
+                                                 ${lgt_rate} \
+                                                 ${orth_rep} \
+                                                 ${gc_cont_am}
+        # launch ALF
+        echo -e "\tRunning ALF .."
+        (cd ${working_dir}/"params_$i"; alfsim "./alf_params.txt" 1>$stdout 2>$stderr)
 
-		# format the ALF genes tree (Newick) to replace '/' with '_' and
-		# remove the "[&&NHX:D=N]" tags
-		echo -e "Cleaning Newick files .."
-		for file in ${working_dir}/"params_$i"/GeneTrees/*.nwk;
-		do
-			echo $file
-			sed -i "s/\//\_/g" $file
-			sed -i "s/\[&&NHX:D=N\]//g" $file
-		done 
-		i=$((i+1))
-	done
+        # format the ALF genes tree (Newick) to replace '/' with '_' and
+        # remove the "[&&NHX:D=N]" tags
+        echo -e "Cleaning Newick files .."
+        for file in ${working_dir}/"params_$i"/GeneTrees/*.nwk;
+        do
+            echo $file
+            sed -i "s/\//\_/g" $file
+            sed -i "s/\[&&NHX:D=N\]//g" $file
+        done 
+        i=$((i+1))
+    done
 done
