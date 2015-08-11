@@ -11,11 +11,13 @@
 # purpose: simulate genomes with ALF
 # usage  : bash test_1_simulate_genomes.sh root_genome.fasta custom_tree.nwk hgt_analysis/scripts_dir working_dir
 
-root_genome_fp=$1
-custom_tree_fp=$2
-scripts_dir=$3
-working_dir=$4
+root_genome_fp=$(readlink -m $1)
+custom_tree_fp=$(readlink -m $2)
+scripts_dir=$(readlink -m $3)
+working_dir=$(readlink -m $4)
 alf_params="alf_params.txt"
+stderr="stderr.log"
+stdout="stdout.log"
 
 lgt_rate=0.005
 orth_rep_a=(0 0.3)
@@ -40,7 +42,19 @@ do
 	                                         	 ${lgt_rate} \
 	                                         	 ${orth_rep} \
 	                                         	 ${gc_cont_am}
-		#bash run_alf_simulations.sh $custom_tree_fp $params $working_dir
+		# launch ALF
+		echo -e "\tRunning ALF .."
+		(cd ${working_dir}/"params_$i"; alfsim "./alf_params.txt" 1>$stdout 2>$stderr)
+
+		# format the ALF genes tree (Newick) to replace '/' with '_' and
+		# remove the "[&&NHX:D=N]" tags
+		echo -e "Cleaning Newick files .."
+		for file in ${working_dir}/"params_$i"/GeneTrees/*.nwk;
+		do
+			echo $file
+			sed -i "s/\//\_/g" $file
+			sed -i "s/\[&&NHX:D=N\]//g" $file
+		done 
 		i=$((i+1))
 	done
 done
