@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015--, Evguenia Kopylova
+# Copyright (c) 2015--, The WGS-HGT Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -22,6 +22,9 @@ stdout="stdout.log"
 lgt_rate=0.005
 orth_rep_a=(0 0.3)
 gc_cont_am_a=("False" "True")
+if [ ! -d "${working_dir}" ]; then
+    mkdir $working_dir
+fi
 
 i=0
 echo "Begin simulation .."
@@ -41,7 +44,8 @@ do
                                                  ${alf_params} \
                                                  ${lgt_rate} \
                                                  ${orth_rep} \
-                                                 ${gc_cont_am}
+                                                 ${gc_cont_am} \
+                                                 "params_$i"
         # launch ALF
         echo -e "\tRunning ALF .."
         (cd ${working_dir}/"params_$i"; alfsim "./alf_params.txt" 1>$stdout 2>$stderr)
@@ -49,11 +53,12 @@ do
         # format the ALF genes tree (Newick) to replace '/' with '_' and
         # remove the "[&&NHX:D=N]" tags
         echo -e "Cleaning Newick files .."
-        for file in ${working_dir}/"params_$i"/GeneTrees/*.nwk;
+        for file in ${working_dir}/"params_$i"/"params_$i"/GeneTrees/*.nwk;
         do
-            echo $file
             sed -i "s/\//\_/g" $file
             sed -i "s/\[&&NHX:D=N\]//g" $file
+            # remove empty lines
+            sed -i "/^$/d" $file
         done 
         i=$((i+1))
     done

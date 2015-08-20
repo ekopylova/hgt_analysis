@@ -1,7 +1,5 @@
-#!/usr/bin/env python
-
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015--, Evguenia Kopylova
+# Copyright (c) 2015--, The WGS-HGT Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -47,7 +45,8 @@ def create_param_file(root_genome_fp,
                       output_file_name="alf_params.txt",
                       lgt_rate=0.003,
                       orth_rep=0.5,
-                      gc_content_amelioration='False'):
+                      gc_content_amelioration='False',
+                      user_id="uuid"):
     """ Create parameters file for ALF genome simulation
 
     Parameters
@@ -69,6 +68,8 @@ def create_param_file(root_genome_fp,
         if True, create random target frequencies for all leaf species
         and all models (See ALF user manual for more information)
         if False, GC content amelioration is disabled
+    uuid: string
+        directory name for ALF output
     """
     root_genome_db_fp = join(working_dp, "%s.db" % basename(root_genome_fp))
     run_fasta_to_darwin(
@@ -79,6 +80,7 @@ def create_param_file(root_genome_fp,
     p = replace(p, 'CUSTOM_TREE.nwk', abspath(custom_tree_fp))
     p = replace(p, 'LGT_RATE', str(lgt_rate))
     p = replace(p, 'ORTHREP', str(orth_rep))
+    p = replace(p, 'UUID', user_id)
     if gc_content_amelioration == 'True':
         p = p + "targetFreqs := ['Random'];\n"
     with open(alf_params_fp, 'w') as alf_params_f:
@@ -95,6 +97,7 @@ def main(argv):
     lgt_rate = float(sys.argv[5])
     orth_rep = float(sys.argv[6])
     gc_content_amelioration = sys.argv[7]
+    user_id = sys.argv[8]
 
     create_param_file(root_genome_fp=root_genome_fp,
                       custom_tree_fp=custom_tree_fp,
@@ -102,11 +105,12 @@ def main(argv):
                       output_file_name=output_file_name,
                       lgt_rate=lgt_rate,
                       orth_rep=orth_rep,
-                      gc_content_amelioration=gc_content_amelioration)
+                      gc_content_amelioration=gc_content_amelioration,
+                      user_id=user_id)
 
 
 parameter_file = """# name of simulation - you may want to change this
-mname := uuid;
+mname := UUID;
 
 # directories for file storage - you may want to change these
 wdir := 'WORKING_DIR_PATH';

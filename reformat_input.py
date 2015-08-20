@@ -1,7 +1,5 @@
-#!/usr/bin/env python
-
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015--, Evguenia Kopylova
+# Copyright (c) 2015--, The WGS-HGT Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
