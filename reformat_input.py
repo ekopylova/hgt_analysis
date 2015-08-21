@@ -45,7 +45,14 @@ def join_trees(gene_tree,
 
 
 def trim_gene_tree_leaves(gene_tree):
-    """ Remove '_GENENAME' from tree leaf names
+    """ Keep only string before first '_' delimiter in node ID
+
+    This function will keep only the word before the first '_' in the
+    complete node ID. In ALF simulated sequences, the genes are labeled
+    as "SPECIES_GENE". Most phylogenetic reconciliation tools
+    require the associations between species leaves and gene leaves to
+    be equal, therefore needing to remove the _GENENAME part in the gene
+    tree.
 
     Parameters
     ----------
@@ -57,20 +64,24 @@ def trim_gene_tree_leaves(gene_tree):
     skbio.TreeNode
     """
     for node in gene_tree.tips():
-        gene_tree.find(node).name = node.name.split()[0]
+        node.name = node.name.split()[0]
 
 
 def species_gene_mapping(gene_tree,
                          species_tree):
-    """ Find the mapping between the leaves in species and gene trees
+    """ Find the association between the leaves in species and gene trees
 
-    The format for species and gene leaves must be a single string
-    (no spaces). Only one instance of the '_' delimiter is allowed in the
-    gene leaves and this is used as a separator between the species name
-    and the gene name. The species names in the species tree (ex. "species")
-    must match exactly to the species name in the gene tree
-    (ex. "species_gene")
-    
+    Given the label format "SPECIES" for the species leaves and
+    "SPECIES_GENE" in the gene leaves, report the associations between all
+    species and gene leaves. Only one instance of the '_' delimiter is
+    allowed in the gene leaves and this is used as a separator between the
+    species name and the gene name.
+
+    Ex.
+
+    mapping = {"SE001":["SE001_1", "SE001_2"],
+               "SE002":["SE002_1"]}
+
     Parameters
     ----------
     gene_tree: skbio.TreeNode
@@ -98,7 +109,7 @@ def species_gene_mapping(gene_tree,
     for node in gene_tree.tips():
         species, gene = node.name.split()
         if species in mapping_leaves:
-            mapping_leaves[species].append(species)
+            mapping_leaves[species].append("%s_%s" % (species, gene))
         else:
             raise ValueError(
                 "Species %s does not exist in the species tree" % species)
@@ -119,7 +130,7 @@ def reformat_rangerdtl(gene_tree,
 
     The species name in the leaves of species and gene trees must be equal.
     For multiple genes from the same species, the format
-    "SPECIESNAME_GENENAME" is acceptable in the gene trees
+    "SPECIES_GENE" is acceptable in the gene trees
 
     Parameters
     ----------
@@ -242,8 +253,6 @@ endblock;
     # create a mapping between the species and gene tree leaves
     mapping_dict = species_gene_mapping(gene_tree=gene_tree,
                                         species_tree=species_tree)
-    # trim gene tree leaves to exclude '_GENENAME' (if exists)
-    trim_gene_tree_leaves(gene_tree)
     # set branch lengths to None
     for node in gene_tree.postorder():
         node.length = None
@@ -252,7 +261,7 @@ endblock;
     mapping_str = ""
     for species in mapping_dict:
         for gene in mapping_dict[species]:
-            mapping_str = "%s%s:%s, " % (mapping_str, species, gene)
+            mapping_str = "%s%s:%s, " % (mapping_str, gene, species)
     p = replace(nexus_file, 'SPECIES_TREE', str(species_tree))
     p = replace(p, 'GENE_TREE', str(gene_tree))
     p = replace(p, 'MAPPING', mapping_str[:-2])
@@ -343,7 +352,7 @@ def _main(gene_tree_fp,
         Species tree can be multifurcating, however will be converted to
         bifurcating trees for software that require them. Leaf labels of
         species tree and gene tree must match, however the label
-        SPECIESNAME_GENENAME is acceptable for multiple genes in the gene
+        SPECIES_GENE is acceptable for multiple genes in the gene
         tree. Leaf labels must also be at most 10 characters long (for
         PHYLIP manipulations)
 

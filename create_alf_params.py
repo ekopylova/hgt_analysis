@@ -46,6 +46,8 @@ def create_param_file(root_genome_fp,
                       lgt_rate=0.003,
                       orth_rep=0.5,
                       gc_content_amelioration='False',
+                      gene_loss_rate=0.005,
+                      gene_dup_rate=0.0006,
                       user_id="uuid"):
     """ Create parameters file for ALF genome simulation
 
@@ -68,6 +70,10 @@ def create_param_file(root_genome_fp,
         if True, create random target frequencies for all leaf species
         and all models (See ALF user manual for more information)
         if False, GC content amelioration is disabled
+    gene_loss_rate: float
+        rate of gene losses (relative to substitutions)
+    gene_dup_rate: float
+        rate of gene duplications (relative to substitutions)
     uuid: string
         directory name for ALF output
     """
@@ -81,6 +87,8 @@ def create_param_file(root_genome_fp,
     p = replace(p, 'LGT_RATE', str(lgt_rate))
     p = replace(p, 'ORTHREP', str(orth_rep))
     p = replace(p, 'UUID', user_id)
+    p = replace(p, 'GENEDUPLRATE', str(gene_dup_rate))
+    p = replace(p, 'GENELOSSRATE', str(gene_loss_rate))
     if gc_content_amelioration == 'True':
         p = p + "targetFreqs := ['Random'];\n"
     with open(alf_params_fp, 'w') as alf_params_f:
@@ -97,7 +105,9 @@ def main(argv):
     lgt_rate = float(sys.argv[5])
     orth_rep = float(sys.argv[6])
     gc_content_amelioration = sys.argv[7]
-    user_id = sys.argv[8]
+    gene_loss_rate = float(sys.argv[8])
+    gene_dup_rate = float(sys.argv[9])
+    user_id = sys.argv[10]
 
     create_param_file(root_genome_fp=root_genome_fp,
                       custom_tree_fp=custom_tree_fp,
@@ -106,6 +116,8 @@ def main(argv):
                       lgt_rate=lgt_rate,
                       orth_rep=orth_rep,
                       gc_content_amelioration=gc_content_amelioration,
+                      gene_loss_rate=gene_loss_rate,
+                      gene_dup_rate=gene_dup_rate,
                       user_id=user_id)
 
 
@@ -138,7 +150,7 @@ modelSwitchS := [[1]]:
 modelSwitchD := [[1]]:
 
 # parameters concerning gene duplication
-geneDuplRate := 0.0006;
+geneDuplRate := GENEDUPLRATE;
 numberDupl := 5;
 transDupl := 0;
 fissionDupl := 0;
@@ -148,7 +160,7 @@ P_neofunc := 0;
 P_subfunc := 0;
 
 # parameters concerning gene loss
-geneLossRate := 0.001;
+geneLossRate := GENELOSSRATE;
 numberLoss := 5;
 
 # parameters concerning LGT

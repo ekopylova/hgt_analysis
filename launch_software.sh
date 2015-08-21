@@ -67,8 +67,6 @@ printf "y\n" > $working_dir/puzzle_cmd.txt
 for gene_tree in $gene_tree_dir/*.nwk
 do
     # T-REX
-    # input conditions: binary trees; gene tree labels must match exactly to
-    # species leaves in gene tree
     echo "Run T-REX"
     python ${scripts_dir}/reformat_input.py --method 'trex' \
                                             --gene-tree-fp $gene_tree \

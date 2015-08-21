@@ -20,8 +20,10 @@ stderr="stderr.log"
 stdout="stdout.log"
 
 lgt_rate=0.005
-orth_rep_a=(0 0.3)
+orth_rep_a=(1 0.5)
 gc_cont_am_a=("False" "True")
+gene_loss_rate_a=(0 0.005)
+gene_dup_rate_a=(0 0.0006)
 if [ ! -d "${working_dir}" ]; then
     mkdir $working_dir
 fi
@@ -34,32 +36,45 @@ do
     for gc_cont_am in "${gc_cont_am_a[@]}"
     do
         echo -e "\tgc_content: ${gc_cont_am}"
-        echo -e "\toutput directory: ${working_dir}/params_$i"
-        if [ ! -d "${working_dir}/params_$i" ]; then
-            mkdir ${working_dir}/"params_$i"
-        fi
-        python $scripts_dir/create_alf_params.py ${root_genome_fp} \
-                                                 ${custom_tree_fp} \
-                                                 ${working_dir}/"params_$i" \
-                                                 ${alf_params} \
-                                                 ${lgt_rate} \
-                                                 ${orth_rep} \
-                                                 ${gc_cont_am} \
-                                                 "params_$i"
-        # launch ALF
-        echo -e "\tRunning ALF .."
-        (cd ${working_dir}/"params_$i"; alfsim "./alf_params.txt" 1>$stdout 2>$stderr)
-
-        # format the ALF genes tree (Newick) to replace '/' with '_' and
-        # remove the "[&&NHX:D=N]" tags
-        echo -e "Cleaning Newick files .."
-        for file in ${working_dir}/"params_$i"/"params_$i"/GeneTrees/*.nwk;
+        for gene_loss_rate in "${gene_loss_rate_a[@]}"
         do
-            sed -i "s/\//\_/g" $file
-            sed -i "s/\[&&NHX:D=N\]//g" $file
-            # remove empty lines
-            sed -i "/^$/d" $file
-        done 
-        i=$((i+1))
+            echo -e "\tgene loss rate: ${gene_loss_rate}"
+            for gene_dup_rate in "${gene_dup_rate_a[@]}"
+            do
+                echo -e "\tgene duplication rate: ${gene_dup_rate}"
+                echo -e "\toutput directory: ${working_dir}/params_$i"
+                if [ ! -d "${working_dir}/params_$i" ]; then
+                    mkdir ${working_dir}/"params_$i"
+                fi
+                python $scripts_dir/create_alf_params.py ${root_genome_fp} \
+                                                         ${custom_tree_fp} \
+                                                         ${working_dir}/"params_$i" \
+                                                         ${alf_params} \
+                                                         ${lgt_rate} \
+                                                         ${orth_rep} \
+                                                         ${gc_cont_am} \
+                                                         ${gene_loss_rate} \
+                                                         ${gene_dup_rate} \
+                                                         "params_$i"
+
+                printf "p(gene loss)\tp(gene duplication)\tp(orthologous gene replacement)\tGC content amelioration\n" > ${working_dir}/"params_$i"/"parameters_summary.txt"
+                printf "${gene_loss_rate}\t${gene_dup_rate}\t${orth_rep}\t${gc_cont_am}\n" >> ${working_dir}/"params_$i"/"parameters_summary.txt"
+                # launch ALF
+                echo -e "\tRunning ALF .."
+                (cd ${working_dir}/"params_$i"; alfsim "./alf_params.txt" 1>$stdout 2>$stderr)
+
+                # format the ALF genes tree (Newick) to replace '/' with '_' and
+                # remove the "[&&NHX:D=N]" tags
+                echo -e "Cleaning Newick files .."
+                for file in ${working_dir}/"params_$i"/"params_$i"/GeneTrees/*.nwk;
+                do
+                    sed -i "s/\//\_/g" $file
+                    sed -i "s/\[&&NHX:D=N\]//g" $file
+                    # remove empty lines
+                    sed -i "/^$/d" $file
+                done 
+                i=$((i+1))
+            done
+        done
     done
 done
