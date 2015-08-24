@@ -19,7 +19,7 @@ alf_params="alf_params.txt"
 stderr="stderr.log"
 stdout="stdout.log"
 
-lgt_rate=0.005
+lgt_rate=0.05
 orth_rep_a=(1 0.5)
 gc_cont_am_a=("False" "True")
 gene_loss_rate_a=(0 0.005)
@@ -32,6 +32,7 @@ i=0
 echo "Begin simulation .."
 for orth_rep in "${orth_rep_a[@]}"
 do
+    echo -e "\tlgt rate: ${lgt_rate}"
     echo -e "\torth_rep: ${orth_rep}"
     for gc_cont_am in "${gc_cont_am_a[@]}"
     do

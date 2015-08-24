@@ -13,7 +13,6 @@ Reformat input files to format accepted by given HGT tool
 
 import sys
 import click
-from tempfile import mkstemp
 from string import replace
 from os import remove
 
@@ -155,8 +154,7 @@ def reformat_trex(gene_tree,
                   output_tree_fp):
     """ Reformat input trees to the format accepted by T-REX
 
-    Binary trees only, leaves of species and gene trees must be equally
-    labeled
+    Binary trees only, leaves of species and gene trees must have equal names
 
     Parameters
     ----------
@@ -173,14 +171,10 @@ def reformat_trex(gene_tree,
     """
     # trim gene tree leaves to exclude '_GENENAME' (if exists)
     trim_gene_tree_leaves(gene_tree)
-    tmp_fp, abs_path = mkstemp()
-    with open(abs_path, 'w') as out_f:
-       out_f.write(str(gene_tree))
     # join species and gene tree into one file
-    join_trees(tmp_gene_tree,
+    join_trees(gene_tree,
         species_tree,
         output_tree_fp)
-    remove(tmp_gene_tree_fp)
 
 
 def reformat_riatahgt(gene_tree,
@@ -188,7 +182,8 @@ def reformat_riatahgt(gene_tree,
                       output_tree_fp):
     """ Reformat input trees to the format accepted by RIATA-HGT (PhyloNet)
 
-    Input to RIATA-HGT is a Nexus file.
+    Input to RIATA-HGT is a Nexus file. The number of leaves in the species
+    and gene tree must be equal with the same naming.
 
     gene_tree: skbio.TreeNode
         TreeNode instance for gene tree
@@ -209,11 +204,11 @@ END;
 BEGIN PHYLONET;
 RIATAHGT speciesTree {geneTree};
 END;
-    """
+"""
     # trim gene tree leaves to exclude '_GENENAME' (if exists)
     trim_gene_tree_leaves(gene_tree)
-    p = replace(nexus_file, 'SPECIES_TREE', str(species_tree))
-    p = replace(p, 'GENE_TREE', str(gene_tree))
+    p = replace(nexus_file, 'SPECIES_TREE', str(species_tree)[:-1])
+    p = replace(p, 'GENE_TREE', str(gene_tree)[:-1])
     with open(output_tree_fp, 'w') as output_tree_f:
         output_tree_f.write(p)
 
@@ -249,7 +244,7 @@ endblock;
 begin distribution;
 Range MAPPING;
 endblock;
-    """
+"""
     # create a mapping between the species and gene tree leaves
     mapping_dict = species_gene_mapping(gene_tree=gene_tree,
                                         species_tree=species_tree)
